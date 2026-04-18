@@ -1,0 +1,6 @@
+docker run -it -d `
+  --name c_dev_env `
+  -v "C:\Users\ranbo6\Documents\work\ubuntu_for_c:/workspace" `
+  ubuntu:latest
+  
+# docker里面的代码被映射到了本地磁盘
