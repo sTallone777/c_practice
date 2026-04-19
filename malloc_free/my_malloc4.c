@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stddef.h>
+#include <string.h>
 #include <unistd.h>
 
 // メモリ配置
@@ -11,7 +12,7 @@ typedef struct Block {
     size_t size;
     int is_free;
     struct Block *next;
-}
+} Block;
 
 Block *global_base = NULL;
 
@@ -19,7 +20,7 @@ Block *global_base = NULL;
 Block *find_free_block(Block **last, size_t size) {
     Block *current = global_base;
 
-    if (current) {
+    while (current) {
         if (current->is_free && current->size >= size) break;
         *last = current;
         current = current->next;
@@ -30,7 +31,7 @@ Block *find_free_block(Block **last, size_t size) {
 
 // OSにメモリブロックを申請
 Block *request_space(Block *last, size_t size) {
-    Block block = sbrk(0);
+    Block *block = sbrk(0);
     void *request = sbrk(size + BLOCK_SIZE);
 
     if (request == (void*)-1) return NULL;
@@ -80,4 +81,36 @@ void my_free(void *ptr) {
         block->size += BLOCK_SIZE + block->next->size;
         block->next = block->next->next;
     }
+}
+
+int main() {
+    printf("开始分配内存...\n");
+
+    int *arr = (int*)my_malloc(10 * sizeof(int));
+
+    if(arr){
+        for(int i = 0; i < 10; i++) {
+            arr[i] = i * 10;
+            printf("%d", arr[i]);
+            printf(":%p ", (void*)(arr + i));
+        }
+        printf("\n分配地址成功。地址:%p\n", (void*)arr);
+    }
+
+    char *str = (char*)my_malloc(30);
+    if (str) {
+        strcpy(str, "これは練習です。");
+        printf("str的内容：%s\n", str);
+
+        // size_t len = strlen(str);
+        for (size_t i = 0; i < 30; i++) {
+            printf("[%zu] 地址:%p  值:0x%02x\n", i, (void*)(str + i), (unsigned char)str[i]);
+        }
+    }
+
+    my_free(arr);
+    my_free(str);
+
+    printf("测试完成。\n");
+    return 0;
 }
